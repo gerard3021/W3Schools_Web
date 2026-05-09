@@ -1,0 +1,22 @@
+ERROR - 2026-05-08 20:00:48 --> mysqli_sql_exception: Duplicate entry '0' for key 'PRIMARY' in C:\xampp\htdocs\webII\ci42_w3schools\system\Database\MySQLi\Connection.php:292
+Stack trace:
+#0 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\MySQLi\Connection.php(292): mysqli->query('INSERT INTO ord...', 0)
+#1 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\BaseConnection.php(666): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO ord...')
+#2 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\BaseConnection.php(593): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO ord...')
+#3 C:\xampp\htdocs\webII\ci42_w3schools\app\Controllers\Orders.php(165): CodeIgniter\Database\BaseConnection->query('INSERT INTO ord...', Array)
+#4 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(927): App\Controllers\Orders->detalleStore('10443')
+#5 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(482): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Orders))
+#6 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(351): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 C:\xampp\htdocs\webII\ci42_w3schools\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#8 {main}
+ERROR - 2026-05-08 20:01:30 --> mysqli_sql_exception: Duplicate entry '0' for key 'PRIMARY' in C:\xampp\htdocs\webII\ci42_w3schools\system\Database\MySQLi\Connection.php:292
+Stack trace:
+#0 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\MySQLi\Connection.php(292): mysqli->query('INSERT INTO ord...', 0)
+#1 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\BaseConnection.php(666): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO ord...')
+#2 C:\xampp\htdocs\webII\ci42_w3schools\system\Database\BaseConnection.php(593): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO ord...')
+#3 C:\xampp\htdocs\webII\ci42_w3schools\app\Controllers\Orders.php(165): CodeIgniter\Database\BaseConnection->query('INSERT INTO ord...', Array)
+#4 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(927): App\Controllers\Orders->detalleStore('10443')
+#5 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(482): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Orders))
+#6 C:\xampp\htdocs\webII\ci42_w3schools\system\CodeIgniter.php(351): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 C:\xampp\htdocs\webII\ci42_w3schools\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#8 {main}

@@ -1,0 +1,196 @@
+<?php
+namespace App\Controllers;
+use App\Models\OrderModel;
+use App\Models\CustomerModel;
+use App\Models\EmployeeModel;
+use App\Models\ShipperModel;
+use App\Models\OrderDetailModel;
+use App\Models\ProductModel;
+
+class Orders extends BaseController
+{
+    private function header() { return view('layout/header'); }
+    private function footer() { return '</main></body></html>'; }
+
+    private function extras()
+    {
+        return [
+            'customers' => (new CustomerModel())->orderBy('CustomerName','ASC')->findAll(),
+            'employees' => (new EmployeeModel())->orderBy('LastName','ASC')->findAll(),
+            'shippers'  => (new ShipperModel())->findAll(),
+        ];
+    }
+
+    public function index()
+    {
+        $data['items'] = (new OrderModel())->obtenerConRelaciones();
+        return $this->header() . view('orders/lista', $data) . $this->footer();
+    }
+
+    public function create()
+    {
+        $data = array_merge($this->extras(), ['errores'=>[],'old'=>[]]);
+        return $this->header() . view('orders/create', $data) . $this->footer();
+    }
+
+    public function store()
+    {
+        $rules = [
+            'CustomerID' => 'required|integer',
+            'EmployeeID' => 'required|integer',
+            'OrderDate'  => 'required|valid_date',
+            'ShipperID'  => 'required|integer',
+        ];
+        if (!$this->validate($rules)) {
+            $data = array_merge($this->extras(), [
+                'errores' => $this->validator->getErrors(),
+                'old'     => $this->request->getPost()
+            ]);
+            return $this->header() . view('orders/create', $data) . $this->footer();
+        }
+        (new OrderModel())->save($this->request->getPost(['CustomerID','EmployeeID','OrderDate','ShipperID']));
+        return redirect()->to('/orders')->with('mensaje', 'Orden registrada correctamente.');
+    }
+
+    public function editar($id = null)
+    {
+        $item = (new OrderModel())->find($id);
+        if (!$item) return redirect()->to('/orders')->with('mensaje', 'No encontrado.');
+        $data = array_merge($this->extras(), ['item'=>$item,'errores'=>[]]);
+        return $this->header() . view('orders/editar', $data) . $this->footer();
+    }
+
+    public function update($id = null)
+    {
+        $model = new OrderModel();
+        $item  = $model->find($id);
+        if (!$item) return redirect()->to('/orders');
+        $rules = [
+            'CustomerID' => 'required|integer',
+            'EmployeeID' => 'required|integer',
+            'OrderDate'  => 'required|valid_date',
+            'ShipperID'  => 'required|integer',
+        ];
+        if (!$this->validate($rules)) {
+            $data = array_merge($this->extras(), [
+                'item'    => array_merge($item, $this->request->getPost()),
+                'errores' => $this->validator->getErrors()
+            ]);
+            return $this->header() . view('orders/editar', $data) . $this->footer();
+        }
+        $model->update($id, $this->request->getPost(['CustomerID','EmployeeID','OrderDate','ShipperID']));
+        return redirect()->to('/orders')->with('mensaje', 'Orden actualizada correctamente.');
+    }
+
+    public function delete($id = null)
+    {
+        (new OrderModel())->delete($id);
+        return redirect()->to('/orders')->with('mensaje', 'Orden eliminada.');
+    }
+
+    private function cargarDetalles($orderId)
+    {
+        $db = \Config\Database::connect();
+        return $db->query(
+            'SELECT od.OrderDetailID, od.OrderID, od.ProductID,
+                    p.ProductName, od.Quantity, p.Price,
+                    (od.Quantity * p.Price) AS Subtotal
+             FROM order_details od
+             LEFT JOIN products p ON p.ProductID = od.ProductID
+             WHERE od.OrderID = ?
+             ORDER BY od.OrderDetailID ASC',
+            [$orderId]
+        )->getResultArray();
+    }
+
+    private function productosEnOrden($orderId): array
+    {
+        $db = \Config\Database::connect();
+        $rows = $db->query(
+            'SELECT ProductID FROM order_details WHERE OrderID = ?',
+            [$orderId]
+        )->getResultArray();
+        return array_column($rows, 'ProductID');
+    }
+
+    private function datosDetalles($orderId, $editando = null): array
+    {
+        $usados = $this->productosEnOrden($orderId);
+        $editandoProductID = $editando ? (int)$editando['ProductID'] : null;
+
+        return [
+            'orden'            => (new OrderModel())->find($orderId),
+            'orderId'          => $orderId,
+            'detalles'         => $this->cargarDetalles($orderId),
+            'products'         => (new ProductModel())->orderBy('ProductName','ASC')->findAll(),
+            'productos_usados' => $usados,
+            'editando'         => $editando,
+            'editandoProductID'=> $editandoProductID,
+        ];
+    }
+
+    public function detalles($orderId = null)
+    {
+        $order = (new OrderModel())->find($orderId);
+        if (!$order) return redirect()->to('/orders')->with('mensaje', 'Orden no encontrada.');
+        return $this->header() . view('orders/detalles', $this->datosDetalles($orderId)) . $this->footer();
+    }
+
+    public function detalleStore($orderId = null)
+    {
+        $productID = (int)$this->request->getPost('ProductID');
+        $quantity  = (int)$this->request->getPost('Quantity');
+
+        if ($productID <= 0 || $quantity <= 0) {
+            return redirect()->to('/orders/detalles/' . $orderId);
+        }
+
+        $db     = \Config\Database::connect();
+        $existe = $db->query(
+            'SELECT OrderDetailID FROM order_details WHERE OrderID=? AND ProductID=?',
+            [(int)$orderId, $productID]
+        )->getRow();
+
+        if ($existe) {
+            return redirect()->to('/orders/detalles/' . $orderId)
+                ->with('mensaje', 'Ese producto ya está en la orden.');
+        }
+
+        $db->query(
+            'INSERT INTO order_details (OrderID, ProductID, Quantity) VALUES (?,?,?)',
+            [(int)$orderId, $productID, $quantity]
+        );
+
+        return redirect()->to('/orders/detalles/' . $orderId)
+            ->with('mensaje', 'Producto agregado.');
+    }
+
+    public function detalleEditar($orderId = null, $detId = null)
+    {
+        $editando = (new OrderDetailModel())->find((int)$detId);
+        if (!$editando) return redirect()->to('/orders/detalles/' . $orderId);
+        return $this->header() . view('orders/detalles', $this->datosDetalles($orderId, $editando)) . $this->footer();
+    }
+
+    public function detalleUpdate($orderId = null, $detId = null)
+    {
+        $quantity = (int)$this->request->getPost('Quantity');
+        if ($quantity > 0) {
+            $db = \Config\Database::connect();
+            $db->query(
+                'UPDATE order_details SET Quantity=? WHERE OrderDetailID=?',
+                [$quantity, (int)$detId]
+            );
+        }
+        return redirect()->to('/orders/detalles/' . $orderId)
+            ->with('mensaje', 'Cantidad actualizada.');
+    }
+
+    public function detalleDelete($orderId = null, $detId = null)
+    {
+        $db = \Config\Database::connect();
+        $db->query('DELETE FROM order_details WHERE OrderDetailID=?', [(int)$detId]);
+        return redirect()->to('/orders/detalles/' . $orderId)
+            ->with('mensaje', 'Producto eliminado de la orden.');
+    }
+}
