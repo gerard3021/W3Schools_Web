@@ -7,7 +7,7 @@
     <div class="campo"><label>Apellido: *</label><input type="text" name="LastName" value="<?= esc($item['LastName']) ?>" required></div>
     <div class="campo"><label>Nombre: *</label><input type="text" name="FirstName" value="<?= esc($item['FirstName']) ?>" required></div>
     <div class="campo"><label>Fecha de Nacimiento: *</label><input type="date" name="BirthDate" value="<?= esc($item['BirthDate']) ?>" required></div>
-    <div class="campo"><label>Notas: </label><textarea name="Notes" required><?= esc($item['Notes']) ?></textarea></div>
+    <div class="campo"><label>Notas: </label><textarea name="Notes"><?= esc($item['Notes']) ?></textarea></div>
     <div class="campo">
         <label>Foto:</label>
         <div>
