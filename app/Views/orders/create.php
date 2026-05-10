@@ -127,8 +127,8 @@
         tbody.querySelectorAll('.product-row').forEach(row => {
             const sel = row.querySelector('.product-select');
             const currentVal = sel.value;
+
             while (sel.options.length > 0) sel.remove(0);
-            // Add placeholder
             const placeholder = document.createElement('option');
             placeholder.value = '';
             placeholder.dataset.price = '0';

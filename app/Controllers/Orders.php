@@ -101,7 +101,7 @@ class Orders extends BaseController
     {
         $item = (new OrderModel())->find($id);
         if (!$item) return redirect()->to('/orders')->with('mensaje', 'No encontrado.');
-        $data = array_merge($this->extras(), ['item'=>$item,'errores'=>[]]);
+        $data = array_merge($this->extras(), $this->datosDetalles($id), ['item' => $item, 'errores' => [], 'editando' => null]);
         return $this->header() . view('orders/editar', $data) . $this->footer();
     }
 
@@ -110,21 +110,58 @@ class Orders extends BaseController
         $model = new OrderModel();
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/orders');
+
         $rules = [
             'CustomerID' => 'required|integer',
             'EmployeeID' => 'required|integer',
             'OrderDate'  => 'required|valid_date',
             'ShipperID'  => 'required|integer',
         ];
-        if (!$this->validate($rules)) {
-            $data = array_merge($this->extras(), [
-                'item'    => array_merge($item, $this->request->getPost()),
-                'errores' => $this->validator->getErrors()
+
+        $productIds = $this->request->getPost('ProductID') ?? [];
+        $quantities = $this->request->getPost('Quantity')  ?? [];
+
+        $detalles    = [];
+        $errDetalles = null;
+        $vistos      = [];
+        $count       = max(count($productIds), count($quantities));
+        for ($i = 0; $i < $count; $i++) {
+            $pid = isset($productIds[$i]) ? (int)$productIds[$i] : 0;
+            $qty = isset($quantities[$i]) ? (int)$quantities[$i] : 0;
+            if ($pid <= 0) continue;
+            if ($qty <= 0) { $errDetalles = 'La cantidad debe ser mayor a 0 para todos los productos.'; break; }
+            if (in_array($pid, $vistos, true)) { $errDetalles = 'No se permiten productos duplicados en la orden.'; break; }
+            $vistos[]   = $pid;
+            $detalles[] = ['ProductID' => $pid, 'Quantity' => $qty];
+        }
+
+        if (!$errDetalles && empty($detalles)) {
+            $errDetalles = 'Debes agregar al menos un producto a la orden.';
+        }
+
+        if (!$this->validate($rules) || $errDetalles) {
+            $errores = $this->validator ? $this->validator->getErrors() : [];
+            if ($errDetalles) $errores['Productos'] = $errDetalles;
+            $data = array_merge($this->extras(), $this->datosDetalles($id), [
+                'item'     => array_merge($item, $this->request->getPost()),
+                'errores'  => $errores,
+                'editando' => null,
             ]);
             return $this->header() . view('orders/editar', $data) . $this->footer();
         }
+
         $model->update($id, $this->request->getPost(['CustomerID','EmployeeID','OrderDate','ShipperID']));
-        return redirect()->to('/orders')->with('mensaje', 'Orden actualizada correctamente.');
+
+        $db = \Config\Database::connect();
+        $db->query('DELETE FROM order_details WHERE OrderID = ?', [(int)$id]);
+        foreach ($detalles as $d) {
+            $db->query(
+                'INSERT INTO order_details (OrderID, ProductID, Quantity) VALUES (?,?,?)',
+                [(int)$id, $d['ProductID'], $d['Quantity']]
+            );
+        }
+
+        return redirect()->to('/orders/detalles/' . $id)->with('mensaje', 'Orden actualizada correctamente.');
     }
 
     public function delete($id = null)
@@ -206,15 +243,17 @@ class Orders extends BaseController
             [(int)$orderId, $productID, $quantity]
         );
 
-        return redirect()->to('/orders/detalles/' . $orderId)
+        return redirect()->to('/orders/editar/' . $orderId)
             ->with('mensaje', 'Producto agregado.');
     }
 
     public function detalleEditar($orderId = null, $detId = null)
     {
         $editando = (new OrderDetailModel())->find((int)$detId);
-        if (!$editando) return redirect()->to('/orders/detalles/' . $orderId);
-        return $this->header() . view('orders/detalles', $this->datosDetalles($orderId, $editando)) . $this->footer();
+        if (!$editando) return redirect()->to('/orders/editar/' . $orderId);
+        $item = (new OrderModel())->find($orderId);
+        $data = array_merge($this->extras(), $this->datosDetalles($orderId, $editando), ['item' => $item]);
+        return $this->header() . view('orders/editar', $data) . $this->footer();
     }
 
     public function detalleUpdate($orderId = null, $detId = null)
@@ -227,7 +266,7 @@ class Orders extends BaseController
                 [$quantity, (int)$detId]
             );
         }
-        return redirect()->to('/orders/detalles/' . $orderId)
+        return redirect()->to('/orders/editar/' . $orderId)
             ->with('mensaje', 'Cantidad actualizada.');
     }
 
@@ -235,7 +274,7 @@ class Orders extends BaseController
     {
         $db = \Config\Database::connect();
         $db->query('DELETE FROM order_details WHERE OrderDetailID=?', [(int)$detId]);
-        return redirect()->to('/orders/detalles/' . $orderId)
+        return redirect()->to('/orders/editar/' . $orderId)
             ->with('mensaje', 'Producto eliminado de la orden.');
     }
 }
