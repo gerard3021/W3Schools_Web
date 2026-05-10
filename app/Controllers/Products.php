@@ -17,6 +17,14 @@ class Products extends BaseController
         ];
     }
 
+    private $rules = [
+        'ProductName' => 'required|min_length[2]|max_length[255]',
+        'SupplierID'  => 'required|integer',
+        'CategoryID'  => 'required|integer',
+        'Unit'        => 'required|min_length[2]|max_length[255]',
+        'Price'       => 'required|numeric|greater_than[0]',
+    ];
+
     public function index()
     {
         $data = $this->extras();
@@ -26,22 +34,15 @@ class Products extends BaseController
 
     public function create()
     {
-        $data = array_merge($this->extras(), ['errores'=>[],'old'=>[]]);
-        return $this->header() . view('products/create', $data) . $this->footer();
+        return $this->header() . view('products/create', array_merge($this->extras(), ['errores'=>[],'old'=>[]])) . $this->footer();
     }
 
     public function store()
     {
-        $rules = [
-            'ProductName' => 'required|max_length[255]',
-            'Price'       => 'required|numeric|greater_than[0]',
-        ];
-        if (!$this->validate($rules)) {
-            $data = array_merge($this->extras(), [
-                'errores' => $this->validator->getErrors(),
-                'old'     => $this->request->getPost()
-            ]);
-            return $this->header() . view('products/create', $data) . $this->footer();
+        if (!$this->validate($this->rules)) {
+            return $this->header() . view('products/create', array_merge($this->extras(), [
+                'errores' => $this->validator->getErrors(), 'old' => $this->request->getPost()
+            ])) . $this->footer();
         }
         (new ProductModel())->save($this->request->getPost(['ProductName','SupplierID','CategoryID','Unit','Price']));
         return redirect()->to('/products')->with('mensaje', 'Producto registrado correctamente.');
@@ -51,8 +52,7 @@ class Products extends BaseController
     {
         $item = (new ProductModel())->find($id);
         if (!$item) return redirect()->to('/products')->with('mensaje', 'No encontrado.');
-        $data = array_merge($this->extras(), ['item'=>$item,'errores'=>[]]);
-        return $this->header() . view('products/editar', $data) . $this->footer();
+        return $this->header() . view('products/editar', array_merge($this->extras(), ['item'=>$item,'errores'=>[]])) . $this->footer();
     }
 
     public function update($id = null)
@@ -60,13 +60,11 @@ class Products extends BaseController
         $model = new ProductModel();
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/products');
-        $rules = ['ProductName'=>'required|max_length[255]','Price'=>'required|numeric|greater_than[0]'];
-        if (!$this->validate($rules)) {
-            $data = array_merge($this->extras(), [
+        if (!$this->validate($this->rules)) {
+            return $this->header() . view('products/editar', array_merge($this->extras(), [
                 'item'    => array_merge($item, $this->request->getPost()),
                 'errores' => $this->validator->getErrors()
-            ]);
-            return $this->header() . view('products/editar', $data) . $this->footer();
+            ])) . $this->footer();
         }
         $model->update($id, $this->request->getPost(['ProductName','SupplierID','CategoryID','Unit','Price']));
         return redirect()->to('/products')->with('mensaje', 'Producto actualizado correctamente.');

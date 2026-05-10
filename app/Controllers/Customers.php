@@ -7,6 +7,15 @@ class Customers extends BaseController
     private function header() { return view('layout/header'); }
     private function footer() { return '</main></body></html>'; }
 
+    private $rules = [
+        'CustomerName' => 'required|min_length[2]|max_length[255]',
+        'ContactName'  => 'required|min_length[2]|max_length[255]',
+        'Address'      => 'required|min_length[3]|max_length[255]',
+        'City'         => 'required|min_length[2]|max_length[255]',
+        'PostalCode'   => 'required|max_length[20]',
+        'Country'      => 'required|min_length[2]|max_length[255]',
+    ];
+
     public function index()
     {
         $data['items'] = (new CustomerModel())->orderBy('CustomerID','DESC')->findAll();
@@ -20,10 +29,9 @@ class Customers extends BaseController
 
     public function store()
     {
-        $rules = ['CustomerName'=>'required|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('customers/create', [
-                'errores'=>$this->validator->getErrors(),'old'=>$this->request->getPost()
+                'errores' => $this->validator->getErrors(), 'old' => $this->request->getPost()
             ]) . $this->footer();
         }
         (new CustomerModel())->save($this->request->getPost(['CustomerName','ContactName','Address','City','PostalCode','Country']));
@@ -42,8 +50,7 @@ class Customers extends BaseController
         $model = new CustomerModel();
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/customers');
-        $rules = ['CustomerName'=>'required|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('customers/editar', [
                 'item'    => array_merge($item, $this->request->getPost()),
                 'errores' => $this->validator->getErrors()

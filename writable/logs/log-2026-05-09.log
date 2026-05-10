@@ -1,0 +1,32 @@
+ERROR - 2026-05-09 19:39:41 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`w3schools`.`products`, CONSTRAINT `products_ibfk_1` FOREIGN KEY (`CategoryID`) REFERENCES `categories` (`CategoryID`)) in C:\xampp\htdocs\ci42_w3schools\system\Database\MySQLi\Connection.php:292
+Stack trace:
+#0 C:\xampp\htdocs\ci42_w3schools\system\Database\MySQLi\Connection.php(292): mysqli->query('INSERT INTO `pr...', 0)
+#1 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseConnection.php(666): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `pr...')
+#2 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseConnection.php(593): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `pr...')
+#3 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseBuilder.php(1916): CodeIgniter\Database\BaseConnection->query('INSERT INTO `pr...', Array, false)
+#4 C:\xampp\htdocs\ci42_w3schools\system\Model.php(279): CodeIgniter\Database\BaseBuilder->insert()
+#5 C:\xampp\htdocs\ci42_w3schools\system\BaseModel.php(749): CodeIgniter\Model->doInsert(Array)
+#6 C:\xampp\htdocs\ci42_w3schools\system\Model.php(667): CodeIgniter\BaseModel->insert(Array, false)
+#7 C:\xampp\htdocs\ci42_w3schools\system\BaseModel.php(659): CodeIgniter\Model->insert(Array, false)
+#8 C:\xampp\htdocs\ci42_w3schools\app\Controllers\Products.php(46): CodeIgniter\BaseModel->save(Array)
+#9 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(927): App\Controllers\Products->store()
+#10 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(482): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Products))
+#11 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(351): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#12 C:\xampp\htdocs\ci42_w3schools\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#13 {main}
+ERROR - 2026-05-09 19:41:05 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`w3schools`.`products`, CONSTRAINT `products_ibfk_1` FOREIGN KEY (`CategoryID`) REFERENCES `categories` (`CategoryID`)) in C:\xampp\htdocs\ci42_w3schools\system\Database\MySQLi\Connection.php:292
+Stack trace:
+#0 C:\xampp\htdocs\ci42_w3schools\system\Database\MySQLi\Connection.php(292): mysqli->query('INSERT INTO `pr...', 0)
+#1 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseConnection.php(666): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `pr...')
+#2 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseConnection.php(593): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `pr...')
+#3 C:\xampp\htdocs\ci42_w3schools\system\Database\BaseBuilder.php(1916): CodeIgniter\Database\BaseConnection->query('INSERT INTO `pr...', Array, false)
+#4 C:\xampp\htdocs\ci42_w3schools\system\Model.php(279): CodeIgniter\Database\BaseBuilder->insert()
+#5 C:\xampp\htdocs\ci42_w3schools\system\BaseModel.php(749): CodeIgniter\Model->doInsert(Array)
+#6 C:\xampp\htdocs\ci42_w3schools\system\Model.php(667): CodeIgniter\BaseModel->insert(Array, false)
+#7 C:\xampp\htdocs\ci42_w3schools\system\BaseModel.php(659): CodeIgniter\Model->insert(Array, false)
+#8 C:\xampp\htdocs\ci42_w3schools\app\Controllers\Products.php(46): CodeIgniter\BaseModel->save(Array)
+#9 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(927): App\Controllers\Products->store()
+#10 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(482): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Products))
+#11 C:\xampp\htdocs\ci42_w3schools\system\CodeIgniter.php(351): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#12 C:\xampp\htdocs\ci42_w3schools\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#13 {main}

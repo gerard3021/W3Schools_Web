@@ -7,6 +7,11 @@ class Shippers extends BaseController
     private function header() { return view('layout/header'); }
     private function footer() { return '</main></body></html>'; }
 
+    private $rules = [
+        'ShipperName' => 'required|min_length[2]|max_length[255]',
+        'Phone'       => 'required|min_length[5]|max_length[50]',
+    ];
+
     public function index()
     {
         $data['items'] = (new ShipperModel())->orderBy('ShipperID','DESC')->findAll();
@@ -20,10 +25,9 @@ class Shippers extends BaseController
 
     public function store()
     {
-        $rules = ['ShipperName'=>'required|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('shippers/create', [
-                'errores'=>$this->validator->getErrors(),'old'=>$this->request->getPost()
+                'errores' => $this->validator->getErrors(), 'old' => $this->request->getPost()
             ]) . $this->footer();
         }
         (new ShipperModel())->save($this->request->getPost(['ShipperName','Phone']));
@@ -42,8 +46,7 @@ class Shippers extends BaseController
         $model = new ShipperModel();
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/shippers');
-        $rules = ['ShipperName'=>'required|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('shippers/editar', [
                 'item'    => array_merge($item, $this->request->getPost()),
                 'errores' => $this->validator->getErrors()

@@ -7,10 +7,19 @@ class Suppliers extends BaseController
     private function header() { return view('layout/header'); }
     private function footer() { return '</main></body></html>'; }
 
+    private $rules = [
+        'SupplierName' => 'required|min_length[2]|max_length[255]',
+        'ContactName'  => 'required|min_length[2]|max_length[255]',
+        'Address'      => 'required|min_length[3]|max_length[255]',
+        'City'         => 'required|min_length[2]|max_length[255]',
+        'PostalCode'   => 'required|max_length[20]',
+        'Country'      => 'required|min_length[2]|max_length[255]',
+        'Phone'        => 'required|min_length[5]|max_length[50]',
+    ];
+
     public function index()
     {
-        $model = new SupplierModel();
-        $data['items'] = $model->orderBy('SupplierID','DESC')->findAll();
+        $data['items'] = (new SupplierModel())->orderBy('SupplierID','DESC')->findAll();
         return $this->header() . view('suppliers/lista', $data) . $this->footer();
     }
 
@@ -21,21 +30,18 @@ class Suppliers extends BaseController
 
     public function store()
     {
-        $rules = ['SupplierName'=>'required|max_length[255]','ContactName'=>'permit_empty|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('suppliers/create', [
-                'errores'=>$this->validator->getErrors(),'old'=>$this->request->getPost()
+                'errores' => $this->validator->getErrors(), 'old' => $this->request->getPost()
             ]) . $this->footer();
         }
-        $model = new SupplierModel();
-        $model->save($this->request->getPost(['SupplierName','ContactName','Address','City','PostalCode','Country','Phone']));
+        (new SupplierModel())->save($this->request->getPost(['SupplierName','ContactName','Address','City','PostalCode','Country','Phone']));
         return redirect()->to('/suppliers')->with('mensaje', 'Proveedor registrado correctamente.');
     }
 
     public function editar($id = null)
     {
-        $model = new SupplierModel();
-        $item  = $model->find($id);
+        $item = (new SupplierModel())->find($id);
         if (!$item) return redirect()->to('/suppliers')->with('mensaje', 'No encontrado.');
         return $this->header() . view('suppliers/editar', ['item'=>$item,'errores'=>[]]) . $this->footer();
     }
@@ -45,8 +51,7 @@ class Suppliers extends BaseController
         $model = new SupplierModel();
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/suppliers');
-        $rules = ['SupplierName'=>'required|max_length[255]'];
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules)) {
             return $this->header() . view('suppliers/editar', [
                 'item'    => array_merge($item, $this->request->getPost()),
                 'errores' => $this->validator->getErrors()

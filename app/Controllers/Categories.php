@@ -9,8 +9,7 @@ class Categories extends BaseController
 
     public function index()
     {
-        $model = new CategoryModel();
-        $data['items'] = $model->orderBy('CategoryID','DESC')->findAll();
+        $data['items'] = (new CategoryModel())->orderBy('CategoryID','DESC')->findAll();
         return $this->header() . view('categories/lista', $data) . $this->footer();
     }
 
@@ -22,8 +21,8 @@ class Categories extends BaseController
     public function store()
     {
         $rules = [
-            'CategoryName' => 'required|max_length[255]',
-            'Description'  => 'permit_empty|max_length[255]',
+            'CategoryName' => 'required|min_length[2]|max_length[255]',
+            'Description'  => 'required|min_length[3]|max_length[255]',
         ];
         if (!$this->validate($rules)) {
             return $this->header() . view('categories/create', [
@@ -31,8 +30,7 @@ class Categories extends BaseController
                 'old'     => $this->request->getPost()
             ]) . $this->footer();
         }
-        $model = new CategoryModel();
-        $model->save([
+        (new CategoryModel())->save([
             'CategoryName' => $this->request->getPost('CategoryName'),
             'Description'  => $this->request->getPost('Description'),
         ]);
@@ -41,8 +39,7 @@ class Categories extends BaseController
 
     public function editar($id = null)
     {
-        $model = new CategoryModel();
-        $item  = $model->find($id);
+        $item = (new CategoryModel())->find($id);
         if (!$item) return redirect()->to('/categories')->with('mensaje', 'No encontrado.');
         return $this->header() . view('categories/editar', ['item'=>$item,'errores'=>[]]) . $this->footer();
     }
@@ -53,8 +50,8 @@ class Categories extends BaseController
         $item  = $model->find($id);
         if (!$item) return redirect()->to('/categories');
         $rules = [
-            'CategoryName' => 'required|max_length[255]',
-            'Description'  => 'permit_empty|max_length[255]',
+            'CategoryName' => 'required|min_length[2]|max_length[255]',
+            'Description'  => 'required|min_length[3]|max_length[255]',
         ];
         if (!$this->validate($rules)) {
             return $this->header() . view('categories/editar', [
@@ -71,8 +68,7 @@ class Categories extends BaseController
 
     public function delete($id = null)
     {
-        $model = new CategoryModel();
-        $model->delete($id);
+        (new CategoryModel())->delete($id);
         return redirect()->to('/categories')->with('mensaje', 'Categoría eliminada.');
     }
 }
