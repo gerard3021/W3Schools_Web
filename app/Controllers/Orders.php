@@ -18,6 +18,8 @@ class Orders extends BaseController
             'customers' => (new CustomerModel())->orderBy('CustomerName','ASC')->findAll(),
             'employees' => (new EmployeeModel())->orderBy('LastName','ASC')->findAll(),
             'shippers'  => (new ShipperModel())->findAll(),
+            'products'  => (new ProductModel())->orderBy('ProductName','ASC')->findAll(),
+
         ];
     }
 
@@ -33,7 +35,7 @@ class Orders extends BaseController
         return $this->header() . view('orders/create', $data) . $this->footer();
     }
 
-    public function store()
+        public function store()
     {
         $rules = [
             'CustomerID' => 'required|integer',
@@ -41,15 +43,59 @@ class Orders extends BaseController
             'OrderDate'  => 'required|valid_date',
             'ShipperID'  => 'required|integer',
         ];
-        if (!$this->validate($rules)) {
+
+        $productIds = $this->request->getPost('ProductID') ?? [];
+        $quantities = $this->request->getPost('Quantity')  ?? [];
+
+        // Build clean detail list: skip empty product rows, validate quantity
+        $detalles = [];
+        $errDetalles = null;
+        $vistos = [];
+        $count = max(count($productIds), count($quantities));
+        for ($i = 0; $i < $count; $i++) {
+            $pid = isset($productIds[$i]) ? (int)$productIds[$i] : 0;
+            $qty = isset($quantities[$i]) ? (int)$quantities[$i] : 0;
+            if ($pid <= 0) continue;
+            if ($qty <= 0) {
+                $errDetalles = 'La cantidad debe ser mayor a 0 para todos los productos.';
+                break;
+            }
+            if (in_array($pid, $vistos, true)) {
+                $errDetalles = 'No se permiten productos duplicados en la orden.';
+                break;
+            }
+            $vistos[] = $pid;
+            $detalles[] = ['ProductID' => $pid, 'Quantity' => $qty];
+        }
+
+        if (!$errDetalles && empty($detalles)) {
+            $errDetalles = 'Debes agregar al menos un producto a la orden.';
+        }
+
+        if (!$this->validate($rules) || $errDetalles) {
+            $errores = $this->validator ? $this->validator->getErrors() : [];
+            if ($errDetalles) $errores['Productos'] = $errDetalles;
             $data = array_merge($this->extras(), [
-                'errores' => $this->validator->getErrors(),
+                'errores' => $errores,
                 'old'     => $this->request->getPost()
             ]);
             return $this->header() . view('orders/create', $data) . $this->footer();
         }
-        (new OrderModel())->save($this->request->getPost(['CustomerID','EmployeeID','OrderDate','ShipperID']));
-        return redirect()->to('/orders')->with('mensaje', 'Orden registrada correctamente.');
+
+        $orderModel = new OrderModel();
+        $orderModel->save($this->request->getPost(['CustomerID','EmployeeID','OrderDate','ShipperID']));
+        $orderId = $orderModel->getInsertID();
+
+        $detModel = new OrderDetailModel();
+        foreach ($detalles as $d) {
+            $detModel->insert([
+                'OrderID'   => $orderId,
+                'ProductID' => $d['ProductID'],
+                'Quantity'  => $d['Quantity'],
+            ]);
+        }
+
+        return redirect()->to('/orders')->with('mensaje', 'Orden registrada correctamente con ' . count($detalles) . ' producto(s).');
     }
 
     public function editar($id = null)
