@@ -7,11 +7,11 @@
     <div class="campo"><label>Apellido: *</label><input type="text" name="LastName" value="<?= esc($old['LastName'] ?? '') ?>" required></div>
     <div class="campo"><label>Nombre: *</label><input type="text" name="FirstName" value="<?= esc($old['FirstName'] ?? '') ?>" required></div>
     <div class="campo"><label>Fecha de Nacimiento: *</label><input type="date" name="BirthDate" value="<?= esc($old['BirthDate'] ?? '') ?>" required></div>
-    <div class="campo"><label>Notas: </label><textarea name="Notes" required><?= esc($old['Notes'] ?? '') ?></textarea></div>
+    <div class="campo"><label>Notas: </label><textarea name="Notes" ><?= esc($old['Notes'] ?? '') ?></textarea></div>
     <div class="campo">
         <label>Foto: </label>
         <div>
-            <input type="file" name="Photo" id="fotoInput" accept="image/*" required onchange="previsualizarFoto(this)">
+            <input type="file" name="Photo" id="fotoInput" accept="image/*" onchange="previsualizarFoto(this)">
             <div id="preview" style="margin-top:8px;display:none;">
                 <img id="previewImg" src="" style="max-width:150px;max-height:150px;border-radius:6px;border:1px solid #ccc;">
             </div>

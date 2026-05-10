@@ -18,7 +18,11 @@
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="campo"><label>Fecha de Orden:*</label><input type="date" name="OrderDate" value="<?= esc($old['OrderDate'] ?? date('Y-m-d')) ?>" required data-testid="order-date-input"></div>
+    <div class="campo">
+        <label>Fecha de Orden:</label>
+        <span style="padding:6px 0;display:inline-block;color:#555;"><?= date('Y-m-d') ?></span>
+        <input type="hidden" name="OrderDate" value="<?= date('Y-m-d') ?>" data-testid="order-date-input">
+    </div>
     <div class="campo"><label>Empresa Envío:*</label>
         <select name="ShipperID" required data-testid="order-shipper-select">
             <option value="">-- Seleccionar --</option>
@@ -92,7 +96,7 @@
             </tfoot>
         </table>
         <p style="color:#666;font-size:13px;margin-top:8px;">
-            Debes agregar al menos un producto. No se permiten productos duplicados.
+            Debes agregar al menos un producto.
         </p>
     </div>
 
@@ -104,6 +108,44 @@
 <script>
 (function () {
     const tbody = document.getElementById('products-tbody');
+
+    const allProducts = [];
+    document.querySelectorAll('#products-tbody .product-row:first-child .product-select option').forEach(opt => {
+        if (opt.value) allProducts.push({ id: opt.value, name: opt.textContent.trim(), price: opt.dataset.price });
+    });
+
+    function getSelectedIds() {
+        const ids = [];
+        tbody.querySelectorAll('.product-select').forEach(sel => {
+            if (sel.value) ids.push(sel.value);
+        });
+        return ids;
+    }
+
+    function refreshOptions() {
+        const selectedIds = getSelectedIds();
+        tbody.querySelectorAll('.product-row').forEach(row => {
+            const sel = row.querySelector('.product-select');
+            const currentVal = sel.value;
+            while (sel.options.length > 0) sel.remove(0);
+            // Add placeholder
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.dataset.price = '0';
+            placeholder.textContent = '-- Seleccionar --';
+            sel.appendChild(placeholder);
+            allProducts.forEach(p => {
+                if (p.id === currentVal || !selectedIds.includes(p.id)) {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.dataset.price = p.price;
+                    opt.textContent = p.name;
+                    if (p.id === currentVal) opt.selected = true;
+                    sel.appendChild(opt);
+                }
+            });
+        });
+    }
 
     function recalcRow(row) {
         const sel   = row.querySelector('.product-select');
@@ -126,7 +168,10 @@
     }
 
     function bindRow(row) {
-        row.querySelector('.product-select').addEventListener('change', recalcAll);
+        row.querySelector('.product-select').addEventListener('change', () => {
+            refreshOptions();
+            recalcAll();
+        });
         row.querySelector('.product-qty').addEventListener('input', recalcAll);
         row.querySelector('.remove-row-btn').addEventListener('click', () => {
             if (tbody.querySelectorAll('.product-row').length <= 1) {
@@ -134,6 +179,7 @@
                 return;
             }
             row.remove();
+            refreshOptions();
             recalcAll();
         });
     }
@@ -143,12 +189,16 @@
         const clone = first.cloneNode(true);
         clone.querySelector('.product-select').value = '';
         clone.querySelector('.product-qty').value    = 1;
+        clone.querySelector('.product-price').textContent    = '$ 0.00';
+        clone.querySelector('.product-subtotal').textContent = '$ 0.00';
         tbody.appendChild(clone);
         bindRow(clone);
+        refreshOptions();
         recalcAll();
     });
 
     tbody.querySelectorAll('.product-row').forEach(bindRow);
+    refreshOptions();
     recalcAll();
 
     document.getElementById('order-form').addEventListener('submit', (ev) => {
@@ -161,10 +211,9 @@
         const ids = [];
         for (const r of rows) {
             const v = r.querySelector('.product-select').value;
-            if (!v) continue;
-            if (ids.includes(v)) {
+            if (!v) {
                 ev.preventDefault();
-                alert('No se permiten productos duplicados en la orden.');
+                alert('Debes seleccionar un producto en cada fila.');
                 return;
             }
             ids.push(v);

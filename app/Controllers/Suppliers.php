@@ -14,7 +14,7 @@ class Suppliers extends BaseController
         'City'         => 'required|min_length[2]|max_length[255]',
         'PostalCode'   => 'required|max_length[20]',
         'Country'      => 'required|min_length[2]|max_length[255]',
-        'Phone'        => 'required|min_length[5]|max_length[50]',
+        'Phone'        => 'required|min_length[4]|max_length[50]',
     ];
 
     public function index()

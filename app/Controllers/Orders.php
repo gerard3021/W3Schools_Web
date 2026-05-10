@@ -47,7 +47,6 @@ class Orders extends BaseController
         $productIds = $this->request->getPost('ProductID') ?? [];
         $quantities = $this->request->getPost('Quantity')  ?? [];
 
-        // Build clean detail list: skip empty product rows, validate quantity
         $detalles = [];
         $errDetalles = null;
         $vistos = [];

@@ -9,14 +9,10 @@
     <?php if (!empty($items)): foreach ($items as $r): ?>
     <tr>
         <td><?= esc($r['EmployeeID']) ?></td>
-        <td>
-            <?php if (!empty($r['Photo'])): ?>
-            <img src="<?= base_url('uploads/' . esc($r['Photo'])) ?>"
-                 style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid #04AA6D;"
-                 onerror="this.style.display='none'">
-            <?php else: ?>
-            <span style="color:#ccc;font-size:11px;">Sin foto</span>
-            <?php endif; ?>
+        <td style="text-align:center;">
+            <img src="<?= base_url('uploads/' . esc($r['Photo'] ?? '')) ?>"
+            style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid #04AA6D;"
+            onerror="this.outerHTML='<span style=\'color:#ccc;font-size:11px;\'>Sin foto</span>'">
         </td>
         <td><?= esc($r['LastName']) ?></td>
         <td><?= esc($r['FirstName']) ?></td>
